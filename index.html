@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DELORO</title>
+<meta name="description" content="DELORO — private tables, by request.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🥂%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    color-scheme:dark;
+    /* Cav Co. coffee palette */
+    --americano:#1E1D1D;
+    --brew:#303031;
+    --mocha:#5A4D41;
+    --chai:#7E6957;
+    --roast:#867C70;
+    --base:#1E1D1D;                     /* Americano */
+    --cream:#877D71;                    /* Roast - primary text */
+    --cream-dim:rgba(134,124,112,.62);  /* Roast, dimmed */
+    --gold:#7E6957;                     /* Chai - accent */
+    --gold-line:rgba(126,105,87,.6);    /* accent hairline */
+    --line:rgba(134,124,112,.2);        /* neutral hairline */
+    --ink:#1E1D1D;                      /* dark text on accent */
+    --err:#BE7C5C;                      /* terracotta - validation */
+    --display:'Didot','Bodoni 72','Hoefler Text',Garamond,'Times New Roman',serif;
+    --body:'Hoefler Text','Baskerville','Didot',Garamond,'Times New Roman',serif;
+    --label:'Avenir Next',Avenir,Futura,'Century Gothic',system-ui,sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:smooth;background:var(--base)}
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation:none!important;transition:none!important}
+  }
+  body{
+    margin:0;
+    min-height:100vh;
+    color:var(--cream);
+    font-family:var(--body);
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(130% 92% at 50% 120%, rgba(126,105,87,.42) 0%, rgba(90,77,65,.18) 42%, transparent 66%),
+      linear-gradient(180deg, #1E1D1D 0%, #242220 42%, #2C2825 74%, #37312B 100%);
+    background-attachment:fixed;
+  }
+  /* fine film grain */
+  .grain{
+    position:fixed;inset:0;
+    pointer-events:none;z-index:60;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    opacity:.06;
+    mix-blend-mode:soft-light;
+  }
+  .label{
+    font-family:var(--label);
+    text-transform:uppercase;
+    letter-spacing:.36em;
+    font-size:.62rem;
+    font-weight:600;
+    color:var(--gold);
+  }
+  /* shared outline CTA */
+  .cta{
+    font-family:var(--label);
+    text-transform:uppercase;
+    letter-spacing:.3em;
+    font-size:.66rem;
+    font-weight:600;
+    color:var(--cream);
+    background:transparent;
+    border:1px solid var(--gold-line);
+    padding:1rem 2.9rem 1rem 3.2rem;
+    cursor:pointer;
+    text-decoration:none;
+    display:inline-block;
+    transition:background .35s ease,color .35s ease,border-color .35s ease;
+  }
+  .cta:hover{background:var(--gold);border-color:var(--gold);color:#EAE3D8}
+  .cta:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+  /* =========================================================
+     LANDING
+  ========================================================= */
+  .hero{
+    position:relative;
+    min-height:100vh;
+    min-height:100svh;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    text-align:center;
+    padding:3rem 1.5rem;
+  }
+  .hero .inner{
+    display:flex;flex-direction:column;align-items:center;
+  }
+  body:not(.visited) .hero .inner{animation:appear 2s ease-out both}
+  @keyframes appear{
+    0%{opacity:0}
+    28%{opacity:0}
+    100%{opacity:1}
+  }
+  .wordmark{
+    font-family:var(--display);
+    font-weight:400;
+    font-size:clamp(2.4rem, 7vw, 4rem);
+    letter-spacing:.5em;
+    margin:0 0 0 .5em;
+    text-transform:uppercase;
+    color:var(--cream);
+  }
+  .hero .enter{margin-top:3.4rem}
+  /* =========================================================
+     VIEW GATING
+  ========================================================= */
+  #formView,#sentView{display:none}
+  body.form-open .hero{display:none}
+  body.form-open #formView{display:block;animation:appear 1.2s ease-out both}
+  body.sent .hero,body.sent #formView{display:none}
+  body.sent #sentView{display:flex}
+  .form-top{padding:3rem 1.5rem 0;text-align:center}
+  .backhome{
+    display:inline-block;
+    background:transparent;border:0;cursor:pointer;
+    font-family:var(--display);font-weight:400;
+    font-size:1.2rem;letter-spacing:.42em;padding:0 0 0 .42em;
+    text-transform:uppercase;color:var(--cream);
+    transition:color .3s ease;
+  }
+  .backhome:hover{color:var(--gold)}
+  .backhome:focus-visible{outline:1px solid var(--gold);outline-offset:4px}
+  .inquiry{padding:3.5rem 1.5rem 5rem}
+  .inquiry .col{max-width:560px;margin:0 auto}
+  form{display:grid;grid-template-columns:1fr 1fr;gap:2.7rem 2.6rem}
+  .field{display:flex;flex-direction:column;gap:.75rem}
+  .field.full{grid-column:1 / -1}
+  @media (max-width:540px){
+    form{grid-template-columns:1fr}
+    .field{grid-column:auto}
+  }
+  .field label{
+    font-family:var(--label);
+    text-transform:uppercase;
+    letter-spacing:.3em;
+    font-size:.6rem;
+    font-weight:600;
+    color:var(--gold);
+  }
+  .field input,
+  .field textarea{
+    font-family:var(--body);
+    font-size:1.02rem;
+    letter-spacing:.02em;
+    color:var(--cream);
+    background:transparent;
+    border:0;
+    border-bottom:1px solid var(--line);
+    border-radius:0;
+    padding:.5rem .1rem .65rem;
+    outline:none;
+    transition:border-color .3s ease;
+    width:100%;
+    appearance:none;
+    -webkit-appearance:none;
+  }
+  .field textarea{resize:none;overflow:hidden;min-height:92px;line-height:1.6}
+  .field input::placeholder,
+  .field textarea::placeholder{color:rgba(150,140,128,.45);letter-spacing:.02em}
+  .field input:focus-visible,
+  .field textarea:focus-visible{border-bottom-color:var(--gold)}
+  /* phone with country code */
+  .phone-row{display:flex;align-items:flex-end;gap:.7rem}
+  .phone-row>.ccpick{flex:0 0 auto}
+  .phone-row>input{width:auto;flex:1 1 auto;min-width:0}
+  .ccpick{position:relative}
+  .cc-btn{
+    font-family:var(--body);font-size:1.02rem;color:var(--cream);
+    background:transparent;border:0;border-bottom:1px solid var(--line);
+    padding:.5rem 1.5rem .65rem .1rem;cursor:pointer;white-space:nowrap;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%237E6957' stroke-width='1.2'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right .2rem center;
+    transition:border-color .3s ease;
+  }
+  .cc-btn:focus-visible{border-bottom-color:var(--gold);outline:none}
+  .cc-menu{
+    position:absolute;z-index:70;top:calc(100% + 10px);left:0;
+    width:246px;max-width:calc(100vw - 3rem);max-height:244px;overflow-y:auto;
+    margin:0;padding:.4rem 0;list-style:none;
+    background:#2A2624;border:1px solid var(--gold-line);
+    box-shadow:0 20px 55px rgba(0,0,0,.55);
+  }
+  .cc-menu[hidden]{display:none}
+  .cc-menu li{
+    display:flex;justify-content:space-between;gap:1rem;
+    font-family:var(--body);font-size:.92rem;color:var(--cream);
+    padding:.55rem 1.1rem;cursor:pointer;
+    transition:background .2s ease,color .2s ease;
+  }
+  .cc-menu li:hover{background:rgba(126,105,87,.28)}
+  .cc-menu li .code{color:var(--cream-dim)}
+  .cc-menu li[aria-selected="true"] .code{color:var(--gold)}
+  /* custom date picker */
+  .datepick{position:relative}
+  .dateinput{
+    cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237E6957' stroke-width='1.5'%3E%3Crect x='3' y='4.5' width='18' height='16' rx='1.5'/%3E%3Cpath d='M3 9h18M8 2.5v4M16 2.5v4'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right .2rem center;
+    padding-right:1.6rem;
+  }
+  .cal{
+    position:absolute;z-index:70;top:calc(100% + 12px);left:0;
+    width:294px;max-width:calc(100vw - 3rem);
+    background:#2A2624;
+    border:1px solid var(--gold-line);
+    padding:1rem 1rem 1.15rem;
+    box-shadow:0 20px 55px rgba(0,0,0,.55);
+  }
+  .cal[hidden]{display:none}
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem}
+  .cal-title{font-family:var(--label);text-transform:uppercase;letter-spacing:.2em;font-size:.64rem;font-weight:600;color:var(--gold)}
+  .cal-nav{background:transparent;border:0;color:var(--cream);font-size:1.2rem;line-height:1;cursor:pointer;padding:.15rem .6rem;transition:color .2s ease}
+  .cal-nav:hover{color:var(--gold)}
+  .cal-nav:focus-visible{outline:1px solid var(--gold);outline-offset:2px}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+  .cal-dow{margin-bottom:.3rem}
+  .cal-dow span{font-family:var(--label);text-transform:uppercase;letter-spacing:.04em;font-size:.5rem;color:var(--cream-dim);text-align:center;padding:.3rem 0}
+  .cal-days button{
+    font-family:var(--body);font-size:.9rem;color:var(--cream);
+    background:transparent;border:0;aspect-ratio:1;cursor:pointer;
+    transition:background .2s ease,color .2s ease;
+  }
+  .cal-days button:hover{background:rgba(126,105,87,.28)}
+  .cal-days button.sel{background:var(--gold);color:#EAE3D8}
+  .cal-days button:disabled{color:rgba(150,140,112,.25);cursor:default}
+  .cal-days button:disabled:hover{background:transparent}
+  .cal-days .blank{visibility:hidden}
+  /* themed inline validation */
+  .field .hint{
+    display:none;
+    font-family:var(--label);
+    text-transform:uppercase;
+    letter-spacing:.24em;
+    font-size:.56rem;
+    font-weight:600;
+    color:var(--err);
+    margin-top:-.15rem;
+  }
+  .field.invalid .hint{display:block}
+  .field.invalid input,
+  .field.invalid textarea{border-bottom-color:var(--err)}
+  .actions{
+    grid-column:1 / -1;
+    display:flex;justify-content:center;
+    margin-top:1.8rem;
+  }
+  /* full-screen "request sent" page */
+  #sentView{
+    position:relative;overflow:hidden;
+    min-height:100vh;min-height:100svh;
+    flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:3rem 1.5rem;
+  }
+  .reveal{
+    position:absolute;inset:0;z-index:0;pointer-events:none;
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;transition:opacity .6s ease;
+    -webkit-mask-image:radial-gradient(circle 110px at var(--mx,50%) var(--my,50%), #000 0%, rgba(0,0,0,.35) 46%, transparent 72%);
+            mask-image:radial-gradient(circle 110px at var(--mx,50%) var(--my,50%), #000 0%, rgba(0,0,0,.35) 46%, transparent 72%);
+  }
+  .reveal.active{opacity:1}
+  .reveal span{
+    font-family:var(--display);
+    font-size:clamp(2.4rem,12vw,7rem);
+    letter-spacing:.12em;text-transform:uppercase;
+    color:rgba(170,158,142,.7);
+    white-space:nowrap;user-select:none;line-height:1;
+  }
+  .sent-inner{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center}
+  .sent-inner .brand{
+    background:transparent;border:0;cursor:pointer;
+    font-family:var(--display);font-weight:400;
+    font-size:clamp(1.6rem,4vw,2.2rem);letter-spacing:.42em;
+    margin:0 0 2rem .42em;
+    text-transform:uppercase;color:var(--cream);
+    transition:color .3s ease;
+  }
+  .sent-inner .brand:hover{color:var(--gold)}
+  .sent-inner .brand:focus-visible{outline:1px solid var(--gold);outline-offset:5px}
+  .sent-inner .mark{width:26px;height:26px;color:var(--gold);margin:0 0 1.8rem}
+  .sent-inner h2{
+    font-family:var(--display);font-weight:400;
+    font-size:clamp(1.6rem,4vw,2.2rem);letter-spacing:.16em;
+    text-transform:uppercase;margin:0 0 1.2rem;color:var(--cream);
+  }
+  .sent-inner p{
+    color:var(--cream-dim);font-size:1rem;font-style:italic;
+    max-width:34ch;margin:0 auto;
+  }
+  .sent-ig{display:inline-flex;margin-top:2.4rem;color:var(--cream);transition:color .3s ease}
+  .sent-ig:hover,.sent-ig:focus-visible{color:var(--gold)}
+  .sent-ig svg{width:18px;height:18px}
+  /* orchestrated entrance for the request-sent page */
+  @media (prefers-reduced-motion: no-preference){
+    @keyframes riseIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+    @keyframes markIn{from{opacity:0;transform:scale(.4) rotate(-45deg)}to{opacity:1;transform:none}}
+    body.sent .sent-inner>*{opacity:0;animation:riseIn .8s ease-out forwards}
+    body.sent .sent-inner .brand{animation-delay:.12s}
+    body.sent .sent-inner .mark{animation:markIn .9s cubic-bezier(.2,.85,.25,1) .28s forwards}
+    body.sent .sent-inner h2{animation-delay:.46s}
+    body.sent .sent-inner p{animation-delay:.62s}
+    body.sent .sent-inner .sent-ig{animation-delay:.78s}
+  }
+  /* divider */
+  .divider{
+    display:flex;align-items:center;justify-content:center;gap:1.3rem;
+    max-width:340px;margin:0 auto;padding:0 1.5rem;
+  }
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+  .divider .dot{width:6px;height:6px;background:var(--gold);transform:rotate(45deg);flex:none;opacity:.85}
+  /* =========================================================
+     FOOTER
+  ========================================================= */
+  footer{padding:5rem 1.5rem 4rem;text-align:center}
+  footer .sig{
+    display:block;
+    font-family:var(--label);
+    text-transform:uppercase;
+    letter-spacing:.3em;
+    font-size:.62rem;
+    font-weight:600;
+    color:var(--gold);
+    line-height:2;
+    max-width:34ch;margin:0 auto 3rem;
+    text-wrap:balance;
+  }
+  .socials{display:flex;justify-content:center;gap:2.4rem;margin-bottom:2.6rem}
+  .socials a{color:var(--cream);display:inline-flex;transition:color .3s ease}
+  .socials a:hover,.socials a:focus-visible{color:var(--gold)}
+  .socials svg{width:17px;height:17px}
+  footer .lines{
+    display:flex;flex-direction:column;gap:.85rem;
+    font-family:var(--label);text-transform:uppercase;
+    letter-spacing:.32em;font-size:.62rem;font-weight:500;
+    color:var(--cream-dim);
+  }
+  footer .lines a{color:inherit;text-decoration:none;transition:color .3s ease}
+  footer .lines a:hover{color:var(--gold)}
+  footer .fine{
+    margin-top:3rem;
+    font-family:var(--label);text-transform:uppercase;
+    color:rgba(134,124,112,.4);
+    font-size:.56rem;letter-spacing:.34em;
+  }
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<!-- ================= LANDING ================= -->
+<header class="hero">
+  <div class="inner">
+    <h1 class="wordmark">Deloro</h1>
+    <a class="enter cta" href="#inquire">Inquire</a>
+  </div>
+</header>
+<!-- ================= INQUIRY (hidden until the inquire link is clicked) ================= -->
+<div id="formView">
+<div class="form-top">
+  <button type="button" class="backhome" id="backHome" aria-label="Back to home">Deloro</button>
+</div>
+<section class="inquiry" id="inquire">
+  <div class="col">
+    <form id="inquiryForm" novalidate>
+      <div class="field">
+        <label for="f-name">Name</label>
+        <input id="f-name" name="name" type="text" autocomplete="name" placeholder="Full name" required>
+        <span class="hint" aria-live="polite"></span>
+      </div>
+      <div class="field">
+        <label for="f-email">Email</label>
+        <input id="f-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+        <span class="hint" aria-live="polite"></span>
+      </div>
+      <div class="field">
+        <label for="f-phone">Phone</label>
+        <div class="phone-row">
+          <div class="ccpick" id="ccpick">
+            <button type="button" class="cc-btn" id="ccBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Country code">US +1</button>
+            <input type="hidden" id="f-cc" name="cc" value="+1">
+            <ul class="cc-menu" id="ccMenu" role="listbox" hidden>
+              <li role="option" data-abbr="US" data-code="+1" aria-selected="true"><span>United States</span><span class="code">+1</span></li>
+              <li role="option" data-abbr="CA" data-code="+1"><span>Canada</span><span class="code">+1</span></li>
+              <li role="option" data-abbr="UK" data-code="+44"><span>United Kingdom</span><span class="code">+44</span></li>
+              <li role="option" data-abbr="MX" data-code="+52"><span>Mexico</span><span class="code">+52</span></li>
+              <li role="option" data-abbr="FR" data-code="+33"><span>France</span><span class="code">+33</span></li>
+              <li role="option" data-abbr="ES" data-code="+34"><span>Spain</span><span class="code">+34</span></li>
+              <li role="option" data-abbr="IT" data-code="+39"><span>Italy</span><span class="code">+39</span></li>
+              <li role="option" data-abbr="DE" data-code="+49"><span>Germany</span><span class="code">+49</span></li>
+              <li role="option" data-abbr="NL" data-code="+31"><span>Netherlands</span><span class="code">+31</span></li>
+              <li role="option" data-abbr="CH" data-code="+41"><span>Switzerland</span><span class="code">+41</span></li>
+              <li role="option" data-abbr="AE" data-code="+971"><span>United Arab Emirates</span><span class="code">+971</span></li>
+              <li role="option" data-abbr="BR" data-code="+55"><span>Brazil</span><span class="code">+55</span></li>
+              <li role="option" data-abbr="AR" data-code="+54"><span>Argentina</span><span class="code">+54</span></li>
+              <li role="option" data-abbr="CO" data-code="+57"><span>Colombia</span><span class="code">+57</span></li>
+              <li role="option" data-abbr="AU" data-code="+61"><span>Australia</span><span class="code">+61</span></li>
+              <li role="option" data-abbr="JP" data-code="+81"><span>Japan</span><span class="code">+81</span></li>
+            </ul>
+          </div>
+          <input id="f-phone" name="phone" type="tel" autocomplete="tel" placeholder="(___) ___-____">
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-date">Date</label>
+        <div class="datepick" id="datepick">
+          <input id="f-date" name="date" class="dateinput" type="text" readonly placeholder="Select a date" autocomplete="off" aria-haspopup="dialog" required>
+          <div class="cal" id="cal" role="dialog" aria-label="Choose a date" hidden>
+            <div class="cal-head">
+              <button type="button" class="cal-nav" data-dir="-1" aria-label="Previous month">&#8249;</button>
+              <span class="cal-title" id="calTitle"></span>
+              <button type="button" class="cal-nav" data-dir="1" aria-label="Next month">&#8250;</button>
+            </div>
+            <div class="cal-grid cal-dow" id="calDow"></div>
+            <div class="cal-grid cal-days" id="calDays"></div>
+          </div>
+        </div>
+        <span class="hint" aria-live="polite"></span>
+      </div>
+      <div class="field full">
+        <label for="f-more">Tell Us More</label>
+        <textarea id="f-more" name="details" rows="1" placeholder="Party size, the occasion, who's coming, and anything we should have ready."></textarea>
+      </div>
+      <div class="actions">
+        <button class="submit cta" type="submit">Send Request</button>
+      </div>
+    </form>
+  </div>
+</section>
+<div class="divider" aria-hidden="true"><span class="dot"></span></div>
+<!-- ================= FOOTER ================= -->
+<footer>
+  <span class="sig">you're too old to text 5 promoters</span>
+  <div class="socials">
+    <a href="https://www.instagram.com/__DELORO" target="_blank" rel="noopener" aria-label="Instagram &mdash; @__DELORO">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="5"/>
+        <circle cx="12" cy="12" r="4.2"/>
+        <circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/>
+      </svg>
+    </a>
+    <a href="mailto:info@deloro.com" aria-label="Email">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="5" width="18" height="14" rx="1"/>
+        <path d="M3 7l9 6 9-6"/>
+      </svg>
+    </a>
+  </div>
+  <div class="lines">
+    <a href="https://www.instagram.com/__DELORO" target="_blank" rel="noopener">@__DELORO</a>
+    <a href="mailto:info@deloro.com">info@deloro.com</a>
+  </div>
+  <p class="fine">Deloro Members &amp; Guests</p>
+</footer>
+</div>
+<!-- ================= REQUEST SENT PAGE ================= -->
+<section id="sentView" class="sent-view" role="status" aria-live="polite">
+  <div class="reveal" id="reveal" aria-hidden="true"><span>Deloro</span></div>
+  <div class="sent-inner">
+    <button type="button" class="brand" id="sentHome" aria-label="Back to home">Deloro</button>
+    <svg class="mark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 0l2.4 9.6L24 12l-9.6 2.4L12 24l-2.4-9.6L0 12l9.6-2.4z"/>
+    </svg>
+    <h2>Request sent</h2>
+    <p>Your request is in. We'll review it shortly.</p>
+    <a class="sent-ig" href="https://www.instagram.com/__DELORO" target="_blank" rel="noopener" aria-label="Instagram &mdash; @__DELORO">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="5"/>
+        <circle cx="12" cy="12" r="4.2"/>
+        <circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/>
+      </svg>
+    </a>
+  </div>
+</section>
+<script>
+  /* themed custom date picker */
+  (function () {
+    const wrap = document.getElementById('datepick');
+    const input = document.getElementById('f-date');
+    const cal = document.getElementById('cal');
+    const titleEl = document.getElementById('calTitle');
+    const dowEl = document.getElementById('calDow');
+    const daysEl = document.getElementById('calDays');
+    const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const DOW = ['S','M','T','W','T','F','S'];
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    let view = new Date(today.getFullYear(), today.getMonth(), 1);
+    let selected = null;
+    dowEl.innerHTML = DOW.map((d) => '<span>' + d + '</span>').join('');
+    function fmt(d) { return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+    function render() {
+      titleEl.textContent = MONTHS[view.getMonth()] + ' ' + view.getFullYear();
+      const firstDay = new Date(view.getFullYear(), view.getMonth(), 1).getDay();
+      const daysInMonth = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate();
+      let html = '';
+      for (let i = 0; i < firstDay; i++) html += '<span class="blank"></span>';
+      for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(view.getFullYear(), view.getMonth(), d);
+        const past = date < today;
+        const isSel = selected && date.getTime() === selected.getTime();
+        html += '<button type="button" data-d="' + d + '"' + (past ? ' disabled' : '') + (isSel ? ' class="sel"' : '') + '>' + d + '</button>';
+      }
+      daysEl.innerHTML = html;
+    }
+    function open() { cal.hidden = false; render(); }
+    function close() { cal.hidden = true; }
+    function toggle() { cal.hidden ? open() : close(); }
+    input.addEventListener('click', toggle);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+      if (e.key === 'Escape') close();
+    });
+    cal.addEventListener('click', (e) => {
+      const nav = e.target.closest('.cal-nav');
+      if (nav) { view.setMonth(view.getMonth() + parseInt(nav.dataset.dir, 10)); render(); return; }
+      const btn = e.target.closest('.cal-days button');
+      if (btn && !btn.disabled) {
+        selected = new Date(view.getFullYear(), view.getMonth(), parseInt(btn.dataset.d, 10));
+        input.value = fmt(selected);
+        input.dataset.iso = selected.getFullYear() + '-' + String(selected.getMonth() + 1).padStart(2, '0') + '-' + String(selected.getDate()).padStart(2, '0');
+        input.dispatchEvent(new Event('input'));
+        close();
+      }
+    });
+    document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) close(); });
+  })();
+  /* themed country-code dropdown */
+  (function () {
+    const wrap = document.getElementById('ccpick');
+    const btn = document.getElementById('ccBtn');
+    const menu = document.getElementById('ccMenu');
+    const hidden = document.getElementById('f-cc');
+    const phone = document.getElementById('f-phone');
+    function open() { menu.hidden = false; btn.setAttribute('aria-expanded', 'true'); }
+    function close() { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
+    btn.addEventListener('click', () => { menu.hidden ? open() : close(); });
+    menu.addEventListener('click', (e) => {
+      const li = e.target.closest('li');
+      if (!li) return;
+      menu.querySelectorAll('li').forEach((x) => x.removeAttribute('aria-selected'));
+      li.setAttribute('aria-selected', 'true');
+      btn.textContent = li.dataset.abbr + ' ' + li.dataset.code;
+      hidden.value = li.dataset.code;
+      close();
+      formatPhone();
+      phone.focus();
+    });
+    document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) close(); });
+    /* progressive phone formatting */
+    function formatPhone() {
+      const usStyle = hidden.value === '+1';
+      let d = phone.value.replace(/\D/g, '');
+      if (usStyle) {
+        d = d.slice(0, 10);
+        let out = '';
+        if (d.length >= 1) out = '(' + d.slice(0, 3);
+        if (d.length >= 4) out += ') ' + d.slice(3, 6);
+        if (d.length >= 7) out += '-' + d.slice(6, 10);
+        phone.value = out;
+        phone.placeholder = '(___) ___-____';
+      } else {
+        d = d.slice(0, 13);
+        phone.value = d.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
+        phone.placeholder = '___ ___ ___';
+      }
+    }
+    phone.addEventListener('input', formatPhone);
+    window._formatPhone = formatPhone;
+  })();
+  /* auto-grow "tell us more" */
+  (function () {
+    const ta = document.getElementById('f-more');
+    function grow() { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+    ta.addEventListener('input', grow);
+    grow();
+  })();
+  /* landing -> form */
+  document.querySelector('.enter').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.body.classList.add('visited', 'form-open');
+    window.scrollTo(0, 0);
+    document.getElementById('f-name').focus({ preventScroll: true });
+  });
+  document.getElementById('backHome').addEventListener('click', () => {
+    document.body.classList.remove('form-open');
+    window.scrollTo(0, 0);
+  });
+  document.getElementById('sentHome').addEventListener('click', () => {
+    window.location.reload();
+  });
+  /* validation + submit */
+  (function () {
+    const form = document.getElementById('inquiryForm');
+    const checks = [
+      { el: document.getElementById('f-name'),  test: (v) => v.trim().length > 0, msg: 'Please add your name' },
+      { el: document.getElementById('f-email'), test: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()), msg: 'Please add a valid email' },
+      { el: document.getElementById('f-date'),  test: (v) => v !== '', msg: 'Please choose a date' },
+    ];
+    const clear = (c) => {
+      const wrap = c.el.closest('.field');
+      wrap.classList.remove('invalid');
+      wrap.querySelector('.hint').textContent = '';
+    };
+    checks.forEach((c) => {
+      c.el.addEventListener('input', () => { if (c.test(c.el.value)) clear(c); });
+    });
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      let firstInvalid = null;
+      checks.forEach((c) => {
+        const wrap = c.el.closest('.field');
+        const ok = c.test(c.el.value);
+        wrap.classList.toggle('invalid', !ok);
+        wrap.querySelector('.hint').textContent = ok ? '' : c.msg;
+        if (!ok && !firstInvalid) firstInvalid = c.el;
+      });
+      if (firstInvalid) { firstInvalid.focus(); return; }
+      document.body.classList.remove('form-open');
+      document.body.classList.add('sent');
+      window.scrollTo(0, 0);
+    });
+  })();
+  /* sent page - cursor reveal of the DELORO logo */
+  (function () {
+    const sv = document.getElementById('sentView');
+    const reveal = document.getElementById('reveal');
+    if (!sv || !reveal) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let lx = 0, ly = 0, raf = null;
+    sv.addEventListener('pointermove', (e) => {
+      lx = e.clientX; ly = e.clientY;
+      reveal.classList.add('active');
+      if (!raf) raf = requestAnimationFrame(() => {
+        raf = null;
+        reveal.style.setProperty('--mx', lx + 'px');
+        reveal.style.setProperty('--my', ly + 'px');
+      });
+    });
+    sv.addEventListener('pointerleave', () => reveal.classList.remove('active'));
+  })();
+</script>
+</body>
+</html>
