@@ -370,7 +370,7 @@
 <section class="inquiry" id="inquire">
   <div class="col">
     <form id="inquiryForm" novalidate>
-      <!-- FormSubmit config: delivers submissions to nicholasbotis@gmail.com -->
+      <!-- FormSubmit config: delivers submissions to info@deloro.group -->
       <input type="hidden" name="_subject" value="New DELORO inquiry">
       <input type="hidden" name="_template" value="table">
       <input type="hidden" name="_captcha" value="false">
@@ -616,7 +616,7 @@
     checks.forEach((c) => {
       c.el.addEventListener('input', () => { if (c.test(c.el.value)) clear(c); });
     });
-    const FORM_ENDPOINT = 'https://formsubmit.co/ajax/nicholasbotis@gmail.com';
+    const FORM_ENDPOINT = 'https://formsubmit.co/ajax/info@deloro.group';
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       let firstInvalid = null;
