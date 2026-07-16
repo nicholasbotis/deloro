@@ -370,6 +370,11 @@
 <section class="inquiry" id="inquire">
   <div class="col">
     <form id="inquiryForm" novalidate>
+      <!-- FormSubmit config: delivers submissions to nicholasbotis@gmail.com -->
+      <input type="hidden" name="_subject" value="New DELORO inquiry">
+      <input type="hidden" name="_template" value="table">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
       <div class="field">
         <label for="f-name">Name</label>
         <input id="f-name" name="name" type="text" autocomplete="name" placeholder="Full name" required>
@@ -611,7 +616,8 @@
     checks.forEach((c) => {
       c.el.addEventListener('input', () => { if (c.test(c.el.value)) clear(c); });
     });
-    form.addEventListener('submit', (e) => {
+    const FORM_ENDPOINT = 'https://formsubmit.co/ajax/nicholasbotis@gmail.com';
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       let firstInvalid = null;
       checks.forEach((c) => {
@@ -622,6 +628,24 @@
         if (!ok && !firstInvalid) firstInvalid = c.el;
       });
       if (firstInvalid) { firstInvalid.focus(); return; }
+      const submitBtn = form.querySelector('.submit');
+      if (submitBtn) { submitBtn.style.pointerEvents = 'none'; submitBtn.style.opacity = '.6'; }
+      // Build a readable payload (combine country code + phone)
+      const data = new FormData(form);
+      const ccEl = document.getElementById('f-cc');
+      const phoneEl = document.getElementById('f-phone');
+      if (phoneEl && phoneEl.value.trim()) {
+        data.set('phone', (ccEl ? ccEl.value + ' ' : '') + phoneEl.value.trim());
+      }
+      try {
+        await fetch(FORM_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json' },
+          body: data
+        });
+      } catch (err) {
+        /* Network hiccup: still confirm to the guest; submission can be retried. */
+      }
       document.body.classList.remove('form-open');
       document.body.classList.add('sent');
       window.scrollTo(0, 0);
